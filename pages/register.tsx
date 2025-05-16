@@ -17,10 +17,10 @@ export default function Register() {
         });
 
         const data = await response.json();
-
         console.log(data)
+
         if (response.ok) {
-            localStorage.setItem("userId", JSON.stringify(data));
+            localStorage.setItem("userId", JSON.stringify(data.id));
             setMessage("Usuário cadastrado com sucesso!");
             setName("");
             setEmail("");
