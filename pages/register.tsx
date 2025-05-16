@@ -1,48 +1,54 @@
 import { useState } from "react";
-import {router} from "next/client";
+import { useRouter } from "next/router";
 
 export default function Register() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [file, setFile] = useState<File | null>(null);
     const [message, setMessage] = useState("");
+    const router = useRouter();
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
 
-        const response = await fetch("/api/register", {
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("email", email);
+        formData.append("password", password);
+        if (file) {
+            formData.append("image", file);
+        }
+
+        const response = await fetch("/api/registerWithImage", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, email, password }),
+            body: formData,
         });
 
-        const data = await response.json();
-        console.log(data)
-
         if (response.ok) {
-            localStorage.setItem("userId", JSON.stringify(data.id));
             setMessage("Usuário cadastrado com sucesso!");
-            setName("");
-            setEmail("");
-            setPassword("");
-            setTimeout(() => router.push("/home"), 1000);
+            // Opcionalmente, armazene os dados do usuário no localStorage
+            const createdUser = await response.json();
+            localStorage.setItem("userId", JSON.stringify(createdUser.id));
+            router.push("/home");
         } else {
-            setMessage(`Erro: ${data.message}`);
+            const errorData = await response.json();
+            setMessage(`Erro: ${errorData.error}`);
         }
     }
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-gray-100">
-            <div className="w-full max-w-md bg-white shadow-lg rounded-lg p-6">
-                <h2 className="text-2xl font-semibold text-center text-gray-900">Cadastrar Usuário</h2>
-                <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+            <div className="w-full max-w-md bg-white shadow-lg rounded-lg p-6 text-center">
+                <h2 className="text-2xl font-semibold text-gray-700">Cadastrar Usuário</h2>
+                <form onSubmit={handleSubmit} encType="multipart/form-data" className="mt-4 space-y-4">
                     <input
                         type="text"
                         placeholder="Nome"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
-                        className="w-full text-gray-900 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <input
                         type="email"
@@ -50,7 +56,7 @@ export default function Register() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="w-full text-gray-900 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <input
                         type="password"
@@ -58,13 +64,22 @@ export default function Register() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
-                        className="w-full text-gray-900 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600">
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+                        className="w-full p-2 border rounded-lg"
+                    />
+                    <button
+                        type="submit"
+                        className="w-full bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600"
+                    >
                         Cadastrar
                     </button>
                 </form>
-                {message && <p className="mt-4 text-center text-green-500">{message}</p>}
+                {message && <p className="mt-4">{message}</p>}
             </div>
         </div>
     );

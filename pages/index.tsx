@@ -1,12 +1,30 @@
-import { useEffect } from "react";
-import { useRouter } from "next/router";
+import {useEffect} from "react";
+import {useRouter} from "next/router";
 
-export default function Home() {
-  const router = useRouter();
+export default function Index() {
+    const router = useRouter();
 
-  useEffect(() => {
-    router.push("/register");
-  }, []);
+    useEffect(() => {
+        const checkUser = async () => {
+            const userId = localStorage.getItem("userId");
+            if (userId) {
+                try {
+                    const response = await fetch(`/api/users/${userId}`);
+                    if (response.ok) {
+                        router.push("/home");
+                        return;
+                    } else {
+                        localStorage.removeItem("user");
+                    }
+                } catch (error) {
+                    console.error("Erro ao verificar o usuário:", error);
+                }
+            }
+            router.push("/register");
+        };
 
-  return null;
+        checkUser();
+    }, [router]);
+
+    return null;
 }
