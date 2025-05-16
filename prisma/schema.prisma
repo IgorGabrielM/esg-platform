@@ -1,10 +1,10 @@
-generator client {
-  provider = "prisma-client-js"
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-datasource db {
-  provider = "sqlite"
-  url      = "file:/tmp/db.sqlite"
+generator client {
+  provider = "prisma-client-js"
 }
 
 model User {
@@ -12,6 +12,6 @@ model User {
   name       String
   email      String   @unique
   password   String
-  imageBytes Bytes? // campo para armazenar a imagem em dados binários (opcional)
+  imageBytes Bytes?
   createdAt  DateTime @default(now())
 }
