@@ -7,7 +7,7 @@ import HTTPParserError = Errors.HTTPParserError;
 
 export const config = {
     api: {
-        bodyParser: false, // Desabilita o parser automático, pois usaremos formidable
+        bodyParser: false,
     },
 };
 
