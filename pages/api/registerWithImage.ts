@@ -1,17 +1,19 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { IncomingForm } from 'formidable';
 import fs from 'fs';
+import Errors from "undici-types/errors";
+import HTTPParserError = Errors.HTTPParserError;
 
 export const config = {
     api: {
-        bodyParser: false,
+        bodyParser: false, // Desabilita o parser automático, pois usaremos formidable
     },
 };
 
 const prisma = new PrismaClient();
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === 'POST') {
         const form = new IncomingForm();
 
@@ -30,8 +32,8 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
                 if (filePath) {
                     imageBytes = fs.readFileSync(filePath);
                 } else {
-                    console.error("Caminho do arquivo não encontrado na resposta do Formidable.");
-                    return res.status(500).json({ error: 'Erro ao ler arquivo enviado.' });
+                    console.error("Caminho do arquivo não encontrado.");
+                    return res.status(500).json({ error: 'Erro ao ler o arquivo enviado.' });
                 }
             }
 
@@ -41,15 +43,17 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
                         name: String(name),
                         email: String(email),
                         password: String(password),
-                        imageBytes, // dados binários da imagem, se houver
+                        imageBytes,
                     },
                 });
                 return res.status(201).json(user);
-            } catch (error: any) {
-                if (error.code === 'P2002') {
+            } catch (error: unknown) {
+                // Se o erro for por violação de unicidade, ex: email já cadastrado
+                if (error instanceof Error && (error as HTTPParserError).code === 'P2002') {
                     return res.status(409).json({ error: 'Email já cadastrado' });
                 }
-                return res.status(500).json({ error: 'Erro ao criar usuário', details: error });
+                console.error("Erro ao criar usuário:", error);
+                return res.status(500).json({ error: 'Erro ao criar usuário' });
             }
         });
     } else {
