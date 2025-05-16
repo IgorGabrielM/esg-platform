@@ -41,13 +41,15 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
                         name: String(name),
                         email: String(email),
                         password: String(password),
-                        imageBytes,
+                        imageBytes, // dados binários da imagem, se houver
                     },
                 });
                 return res.status(201).json(user);
-            } catch (error) {
-                console.error("Erro ao criar usuário:", error);
-                return res.status(500).json({ error: 'Erro ao criar usuário' });
+            } catch (error: any) {
+                if (error.code === 'P2002') {
+                    return res.status(409).json({ error: 'Email já cadastrado' });
+                }
+                return res.status(500).json({ error: 'Erro ao criar usuário', details: error });
             }
         });
     } else {
