@@ -1,8 +1,16 @@
 import { useEffect, useState } from "react";
+import Image from "next/image";
+
+interface User {
+    id: number;
+    name: string;
+    email: string;
+    image?: string;
+}
 
 export default function Home() {
-    const [user, setUser] = useState<any>(null);
-    const [error, setError] = useState("");
+    const [user, setUser] = useState<User | null>(null);
+    const [error, setError] = useState<string>("");
 
     useEffect(() => {
         const storedUser = localStorage.getItem("userId");
@@ -62,10 +70,12 @@ export default function Home() {
                     {user ? (
                         <>
                             {user.image ? (
-                                <img
+                                <Image
                                     src={`data:image/jpeg;base64,${user.image}`}
                                     alt="Foto do Usuário"
-                                    className="w-12 h-12 rounded-full object-cover"
+                                    width={48}
+                                    height={48}
+                                    className="rounded-full object-cover"
                                 />
                             ) : (
                                 <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
@@ -79,6 +89,7 @@ export default function Home() {
                         <HeaderSkeleton />
                     )}
                 </div>
+                {error && <p className="text-red-500 mt-2">{error}</p>}
             </header>
             <main className="w-8/12 mx-auto p-4">
                 <h2 className="text-xl font-semibold mb-4">Posts</h2>
