@@ -53,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     return res.status(409).json({ error: 'Email já cadastrado' });
                 }
                 console.error("Erro ao criar usuário:", error);
-                return res.status(500).json({ error: 'Erro ao criar usuário' });
+                return res.status(500).json({ error: 'Erro ao criar usuário:', body: error });
             }
         });
     } else {
